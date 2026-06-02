@@ -79,6 +79,44 @@ ext-agent-chain:
 ext-pi-pi:
     pi -e extensions/pi-pi.ts -e extensions/theme-cycler.ts
 
+# 17. Coms: peer-to-peer messaging between Pi agents on the same machine
+# Pass any pi/extension flags through, e.g.: just ext-coms --name dev --color "#72F1B8"
+ext-coms *args:
+    pi -e extensions/coms.ts -e extensions/minimal.ts -e extensions/theme-cycler.ts {{args}}
+
+# coms demo
+
+# Coms — planner agent (cyan). Extra args append, e.g.: just ext-coms-planner --explicit
+ext-coms-planner *args:
+    pi -e extensions/coms.ts -e extensions/minimal.ts -e extensions/theme-cycler.ts --name planner --purpose "Plans the work, audio-first" --color "#36F9F6" {{args}}
+
+# Coms — coder agent (pink). Extra args append.
+ext-coms-coder *args:
+    pi -e extensions/coms.ts -e extensions/minimal.ts -e extensions/theme-cycler.ts --name coder --purpose "Writes and edits code" --color "#FF7EDB" {{args}}
+
+# Coms — open planner + coder in two terminals
+ext-coms-pair:
+    #!/usr/bin/env bash
+    osascript -e "tell application \"Terminal\" to do script \"cd '{{justfile_directory()}}' && just ext-coms-planner\""
+    osascript -e "tell application \"Terminal\" to do script \"cd '{{justfile_directory()}}' && just ext-coms-coder\""
+
+# Coms — spawn 4 coders in parallel terminals
+ext-coms-team-4:
+    #!/usr/bin/env bash
+    declare -a names=("coder-1" "coder-2" "coder-3" "coder-4")
+    declare -a colors=("#72F1B8" "#36F9F6" "#FF7EDB" "#FEDE5D")
+
+    for i in {0..3}; do
+        osascript -e "tell application \"Terminal\" to do script \"cd '{{justfile_directory()}}' && source .env && pi -e extensions/coms.ts -e extensions/minimal.ts -e extensions/theme-cycler.ts --name '${names[$i]}' --purpose 'Writes and edits code' --color '${colors[$i]}'\""
+    done
+
+# Pi with networked coms client (auto-discovers local server.json)
+# Pass any flags through, e.g.: just ext-coms-net --name dev --server-url http://… --auth-token …
+ext-coms-net *args:
+    pi -e extensions/coms-net.ts -e extensions/minimal.ts -e extensions/theme-cycler.ts {{args}}
+
+#ext
+
 # 15. Session Replay: scrollable timeline overlay of session history (legit)
 ext-session-replay:
     pi -e extensions/session-replay.ts -e extensions/minimal.ts
